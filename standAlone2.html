@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Media Player Test</title>
+</head>
+
+<body>
+    <audio id="currentSong" controls>
+        <source src="http://127.0.0.1:3000/Spotify_Clone/songs/KK/Ajab%20Si%20Om%20Shanti%20Om%20128%20Kbps.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    <div class="songTime">0:00 / 0:00</div>
+    <div class="seekBar" style="width: 100%; height: 10px; background-color: #ccc; cursor: pointer;">
+        <div class="circle" style="width: 10px; height: 10px; background-color: red; position: absolute; left: 0;">
+        </div>
+    </div>
+
+    <script>
+        const currentSong = document.getElementById('currentSong');
+
+        function secondsToMinutesSeconds(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = Math.floor(seconds % 60);
+            return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+        }
+
+        function updateSongTime() {
+            const songTimeElement = document.querySelector(".songTime");
+            const circleElement = document.querySelector(".circle");
+            const currentTime = currentSong.currentTime;
+            const duration = currentSong.duration;
+
+            console.log("Current Time:", currentTime, "Duration:", duration);
+
+            if (duration > 0) {
+                songTimeElement.innerHTML = `${secondsToMinutesSeconds(currentTime)} / ${secondsToMinutesSeconds(duration)}`;
+                circleElement.style.left = (currentTime * 100 / duration) + "%";
+            }
+        }
+
+        // Force play and pause to ensure initialization
+        currentSong.addEventListener('loadstart', () => {
+            console.log("Load start triggered");
+            currentSong.play().then(() => {
+                currentSong.pause();
+            });
+        });
+
+        currentSong.addEventListener('loadedmetadata', () => {
+            console.log("Metadata loaded. Duration:", currentSong.duration);
+            updateSongTime();
+        });
+
+        currentSong.addEventListener('canplaythrough', () => {
+            console.log("Media can play through. Duration:", currentSong.duration);
+            updateSongTime();
+        });
+
+        currentSong.addEventListener("timeupdate", updateSongTime);
+
+        document.querySelector(".seekBar").addEventListener('click', (e) => {
+            const seekBarElement = e.currentTarget;
+            let percent = (e.offsetX / seekBarElement.getBoundingClientRect().width) * 100;
+            percent = Math.max(0, Math.min(100, percent));
+
+            const newTime = (currentSong.duration * percent) / 100;
+            console.log("New Time:", newTime);
+
+            if (!isNaN(currentSong.duration) && currentSong.duration > 0) {
+                currentSong.currentTime = newTime;
+                console.log("Updated time:", currentSong.currentTime);
+            }
+            console.log("CurrentTime after click:", currentSong.currentTime);
+        });
+
+        console.log("Media Source:", currentSong.src);
+        console.log("Ready State:", currentSong.readyState);
+
+        currentSong.addEventListener('error', (e) => {
+            console.log("Media error:", e);
+        });
+    </script>
+</body>
+
+</html>
